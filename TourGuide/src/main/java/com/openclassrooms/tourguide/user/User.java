@@ -81,10 +81,27 @@ public class User {
 		visitedLocations.clear();
 	}
 
-	public void addUserReward(UserReward userReward) {
-		if(userRewards.stream().filter(r -> !r.attraction.attractionName.equals(userReward.attraction)).count() == 0) {
-			userRewards.add(userReward);
+	public synchronized void addUserReward(UserReward userReward) {
+		
+		boolean alreadyExists = false;
+		
+		for(UserReward existingReward : userRewards) {
+	        
+	        if (existingReward.attraction.attractionName.equals(userReward.attraction.attractionName)) {
+	        	
+	            alreadyExists = true;
+	            break;
+	            
+	        }
+	        
 		}
+	    
+	    if (!alreadyExists) {
+	    	
+	        userRewards.add(userReward);
+	        
+	    }
+	    
 	}
 
 	public List<UserReward> getUserRewards() {
