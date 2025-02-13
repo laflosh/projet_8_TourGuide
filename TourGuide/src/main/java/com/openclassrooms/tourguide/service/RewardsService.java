@@ -82,15 +82,15 @@ public class RewardsService {
 					
 				}
 				
-			}
-			
-			if(!newRewards.isEmpty()) {
+				if(!newRewards.isEmpty()) {
+					
+					addAllNewRewards(newRewards, user);
+					
+				}
 				
-				addAllNewRewards(newRewards, user);
+				newRewards.clear();
 				
 			}
-			
-			newRewards.clear();
 		
 		}
 		
@@ -108,13 +108,25 @@ public class RewardsService {
 
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
 		
-		return getDistance(attraction, location) > attractionProximityRange ? false : true;
+		double distance = getDistance(attraction, location);
+		
+		if(distance > attractionProximityRange) {
+			return false;
+		} else {
+			return true;
+		}
 		
 	}
 
 	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		
-		return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
+		double distance = getDistance(attraction, visitedLocation.location);
+		
+		if(distance > proximityBuffer) {
+			return false;
+		} else {
+			return true;
+		}
 		
 	}
 
