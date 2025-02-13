@@ -3,6 +3,7 @@ package com.openclassrooms.tourguide.service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
+import com.openclassrooms.tourguide.model.NearbyAttraction;
 import com.openclassrooms.tourguide.model.user.User;
 import com.openclassrooms.tourguide.model.user.UserReward;
 import com.openclassrooms.tourguide.tracker.Tracker;
@@ -26,6 +28,7 @@ import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
+import rewardCentral.RewardCentral;
 import tripPricer.Provider;
 import tripPricer.TripPricer;
 
@@ -36,7 +39,9 @@ public class TourGuideService {
 	
 	private final GpsUtil gpsUtil;
 	private final RewardsService rewardsService;
+	private final RewardCentral rewardCentral = new RewardCentral();
 	private final TripPricer tripPricer = new TripPricer();
+	
 	public final Tracker tracker;
 	
 	boolean testMode = true;
@@ -123,24 +128,39 @@ public class TourGuideService {
 		
 	}
 
-	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
+	public List<NearbyAttraction> getNearByAttractions(VisitedLocation visitedLocation) {
 		
-		List<Attraction> nearbyAttractions = new ArrayList<>();
+		List<NearbyAttraction> nearbyAttractions = new ArrayList<>();
 		List<Attraction> attractions = gpsUtil.getAttractions();
 		
 		for (Attraction attraction : attractions) {
 			
 			double distanceAttraction = rewardsService.getDistance(attraction, visitedLocation.location);
 			
-			if (nearbyAttractions.isEmpty()) {
+			NearbyAttraction nearbyAttraction = new NearbyAttraction();
+			Location location = new Location(attraction.latitude, attraction.longitude);
+			
+			nearbyAttraction.setAttractionName(attraction.attractionName);
+			nearbyAttraction.setAttractionLocation(location);
+			nearbyAttraction.setUserLocation(visitedLocation.location);
+			nearbyAttraction.setDistanceBetweenUserAndAttraction(distanceAttraction);
+			nearbyAttraction.setRewardPoints(rewardCentral.getAttractionRewardPoints(attraction.attractionId, visitedLocation.userId));
+			
+			if (nearbyAttraction != null) {
 				
-				nearbyAttractions.add(attraction);
+				nearbyAttractions.add(nearbyAttraction);
 				
 			}
 			
 		}
+		
+		List<NearbyAttraction> sortedNearbyAttraction = nearbyAttractions.stream()
+														.sorted(Comparator.comparingDouble(attraction -> attraction.getDistanceBetweenUserAndAttraction()))
+														.limit(5)
+														.toList();
+																			
 
-		return nearbyAttractions;
+		return sortedNearbyAttraction;
 		
 	}
 

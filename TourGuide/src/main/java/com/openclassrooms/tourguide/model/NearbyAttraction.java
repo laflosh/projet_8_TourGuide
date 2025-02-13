@@ -12,7 +12,7 @@ public class NearbyAttraction {
 	
 	double distanceBetweenUserAndAttraction;
 	
-	double rewardPoints;
+	int rewardPoints;
 
 	public String getAttractionName() {
 		return attractionName;
@@ -46,11 +46,11 @@ public class NearbyAttraction {
 		this.distanceBetweenUserAndAttraction = distanceBetweenUserAndAttraction;
 	}
 
-	public double getRewardPoints() {
+	public int getRewardPoints() {
 		return rewardPoints;
 	}
 
-	public void setRewardPoints(double rewardPoints) {
+	public void setRewardPoints(int rewardPoints) {
 		this.rewardPoints = rewardPoints;
 	}
 	

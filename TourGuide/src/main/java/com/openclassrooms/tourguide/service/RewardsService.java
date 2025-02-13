@@ -130,7 +130,7 @@ public class RewardsService {
 		
 	}
 
-	private int getRewardPoints(Attraction attraction, User user) {
+	public int getRewardPoints(Attraction attraction, User user) {
 		
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 		
