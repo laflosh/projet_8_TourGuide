@@ -18,9 +18,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
+import com.openclassrooms.tourguide.model.user.User;
+import com.openclassrooms.tourguide.model.user.UserReward;
 import com.openclassrooms.tourguide.tracker.Tracker;
-import com.openclassrooms.tourguide.user.User;
-import com.openclassrooms.tourguide.user.UserReward;
 
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
@@ -126,10 +126,13 @@ public class TourGuideService {
 	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
 		
 		List<Attraction> nearbyAttractions = new ArrayList<>();
+		List<Attraction> attractions = gpsUtil.getAttractions();
 		
-		for (Attraction attraction : gpsUtil.getAttractions()) {
+		for (Attraction attraction : attractions) {
 			
-			if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
+			double distanceAttraction = rewardsService.getDistance(attraction, visitedLocation.location);
+			
+			if (nearbyAttractions.isEmpty()) {
 				
 				nearbyAttractions.add(attraction);
 				
