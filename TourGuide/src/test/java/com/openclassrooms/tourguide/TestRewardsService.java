@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +24,7 @@ import rewardCentral.RewardCentral;
 public class TestRewardsService {
 
 	@Test
-	public void userGetRewards() {
+	public void userGetRewards() throws InterruptedException {
 		
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -35,7 +36,11 @@ public class TestRewardsService {
 		Attraction attraction = gpsUtil.getAttractions().get(0);
 		
 		user.addToVisitedLocations(new VisitedLocation(user.getUserId(), attraction, new Date()));
-		tourGuideService.trackUserLocation(user);
+
+		CompletableFuture<VisitedLocation> future = tourGuideService.trackUserLocation(user);
+		
+		future.thenCompose(visitedLocation -> rewardsService.calculateRewards(user))
+        .join();
 		
 		List<UserReward> userRewards = user.getUserRewards();
 		tourGuideService.tracker.stopTracking();
@@ -64,7 +69,11 @@ public class TestRewardsService {
 		InternalTestHelper.setInternalUserNumber(1);
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
-		rewardsService.calculateRewards(tourGuideService.getAllUsers().get(0));
+		CompletableFuture<VisitedLocation> future = tourGuideService.trackUserLocation(tourGuideService.getAllUsers().get(0));
+		
+		future.thenCompose(visitedLocation -> rewardsService.calculateRewards(tourGuideService.getAllUsers().get(0)))
+        .join();
+		
 		List<UserReward> userRewards = tourGuideService.getUserRewards(tourGuideService.getAllUsers().get(0));
 		tourGuideService.tracker.stopTracking();
 
