@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -73,12 +74,17 @@ public class TourGuideService {
 		
 	}
 
-	public VisitedLocation getUserLocation(User user) {
+	public CompletableFuture<VisitedLocation> getUserLocation(User user) {
 		
-		VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ? user.getLastVisitedLocation()
-				: trackUserLocation(user);
-		
-		return visitedLocation;
+		if(user.getVisitedLocations().size() > 0){
+			
+			return CompletableFuture.completedFuture(user.getLastVisitedLocation());
+			
+		} else {
+			
+			return trackUserLocation(user);
+			
+		}
 		
 	}
 
@@ -117,50 +123,66 @@ public class TourGuideService {
 		
 	}
 
-	public VisitedLocation trackUserLocation(User user) {
+	public CompletableFuture<VisitedLocation> trackUserLocation(User user) {
 		
-		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
-		
-		user.addToVisitedLocations(visitedLocation);
-		rewardsService.calculateRewards(user);
-		
-		return visitedLocation;
+		return CompletableFuture.supplyAsync(() -> gpsUtil.getUserLocation(user.getUserId()))
+				.thenApply(visitedLocation -> {
+					
+					user.addToVisitedLocations(visitedLocation);
+					rewardsService.calculateRewards(user);
+					
+					return visitedLocation;
+					
+				})
+	            .exceptionally(ex -> {
+	            	
+	                System.err.println("Erreur lors de la récupération de la position GPS : " + ex.getMessage());
+	                return null;
+	                
+	            });
 		
 	}
 
-	public List<NearbyAttraction> getNearByAttractions(VisitedLocation visitedLocation) {
+	public List<NearbyAttraction> getNearByAttractions(CompletableFuture<VisitedLocation> visitedLocation) {
 		
 		List<NearbyAttraction> nearbyAttractions = new ArrayList<>();
 		List<Attraction> attractions = gpsUtil.getAttractions();
 		
-		for (Attraction attraction : attractions) {
+		visitedLocation.thenAccept(visited -> {
 			
-			double distanceAttraction = rewardsService.getDistance(attraction, visitedLocation.location);
-			
-			NearbyAttraction nearbyAttraction = new NearbyAttraction();
-			Location location = new Location(attraction.latitude, attraction.longitude);
-			
-			nearbyAttraction.setAttractionName(attraction.attractionName);
-			nearbyAttraction.setAttractionLocation(location);
-			nearbyAttraction.setUserLocation(visitedLocation.location);
-			nearbyAttraction.setDistanceBetweenUserAndAttraction(distanceAttraction);
-			nearbyAttraction.setRewardPoints(rewardCentral.getAttractionRewardPoints(attraction.attractionId, visitedLocation.userId));
-			
-			if (nearbyAttraction != null) {
+			for (Attraction attraction : attractions) {
 				
-				nearbyAttractions.add(nearbyAttraction);
+				double distanceAttraction = rewardsService.getDistance(attraction, visited.location);
+				
+				NearbyAttraction nearbyAttraction = new NearbyAttraction();
+				Location location = new Location(attraction.latitude, attraction.longitude);
+				
+				nearbyAttraction.setAttractionName(attraction.attractionName);
+				nearbyAttraction.setAttractionLocation(location);
+				nearbyAttraction.setUserLocation(visited.location);
+				nearbyAttraction.setDistanceBetweenUserAndAttraction(distanceAttraction);
+				nearbyAttraction.setRewardPoints(rewardCentral.getAttractionRewardPoints(attraction.attractionId, visited.userId));
+				
+				if (nearbyAttraction != null) {
+					
+					nearbyAttractions.add(nearbyAttraction);
+					
+				}
 				
 			}
 			
-		}
+		});
 		
 		List<NearbyAttraction> sortedNearbyAttraction = nearbyAttractions.stream()
-														.sorted(Comparator.comparingDouble(attraction -> attraction.getDistanceBetweenUserAndAttraction()))
-														.limit(5)
-														.toList();
-																			
-
+				.sorted(Comparator.comparingDouble(attraction -> attraction.getDistanceBetweenUserAndAttraction()))
+				.limit(5)
+				.toList();
+		
 		return sortedNearbyAttraction;
+		
+
+		
+		//attractions.stream().map((a)-> new Tuple(a, rewardsService.getDistance(attraction, visitedLocation.location))).sort(Comparator...).limit(
 		
 	}
 
