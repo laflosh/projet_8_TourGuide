@@ -129,7 +129,7 @@ public class TourGuideService {
 				.thenApply(visitedLocation -> {
 					
 					user.addToVisitedLocations(visitedLocation);
-					rewardsService.calculateRewards(user);
+					CompletableFuture.runAsync(() -> rewardsService.calculateRewards(user));
 					
 					return visitedLocation;
 					

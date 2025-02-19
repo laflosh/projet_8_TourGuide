@@ -2,6 +2,7 @@ package com.openclassrooms.tourguide.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.stereotype.Service;
@@ -46,63 +47,65 @@ public class RewardsService {
 		
 	}
 
-	public void calculateRewards(User user) {
+	public CompletableFuture<Void> calculateRewards(User user) {
 		
 		List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
 		List<Attraction> attractions = gpsUtil.getAttractions();
-		
-	    List<UserReward> newRewards = new ArrayList<>();
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
 
 		for(VisitedLocation visitedLocation : userLocations) {
 			
 			for(Attraction attraction : attractions) {
 				
-				boolean alreadyExist = false;
-				
-				for(UserReward existingReward : user.getUserRewards()) {
-            		
-            		if(existingReward.attraction.attractionName.equals(attraction.attractionName)) {
-            			
-            			alreadyExist = true;
-            			break;
-            			
-            		}
-            		
-            	}
-				
-				if(alreadyExist == false) {
+				CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
 					
-					if(nearAttraction(visitedLocation, attraction)) {
+					boolean alreadyExist = false;
+					
+					for(UserReward existingReward : user.getUserRewards()) {
+	            		
+	            		if(existingReward.attraction.attractionName.equals(attraction.attractionName)) {
+	            			
+	            			alreadyExist = true;
+	            			break;
+	            			
+	            		}
+	            		
+	            	}
+					
+					return alreadyExist;
+					
+				}).thenCompose(alreadyExist -> {
+					
+					if(alreadyExist == false) {
 						
-						UserReward newReward = new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user));
-						
-						newRewards.add(newReward);
+						if(nearAttraction(visitedLocation, attraction)) {
+							
+							 	return getRewardPoints(attraction, user).thenAccept(result -> {
+								
+								int rewardPoints = result.hashCode();
+								
+								UserReward newReward = new UserReward(visitedLocation, attraction, rewardPoints);
+								
+								user.addUserReward(newReward);
+								
+							});
+							
+						}
 						
 					}
 					
-				}
-				
-				if(!newRewards.isEmpty()) {
+					return CompletableFuture.completedFuture(null);
 					
-					addAllNewRewards(newRewards, user);
+				});
 					
-				}
 				
-				newRewards.clear();
+				futures.add(future);
 				
 			}
 		
 		}
 		
-	}
-	
-	public void addAllNewRewards(List<UserReward> newRewards, User user) {
-		
-		for(UserReward newReward : newRewards) {
-			
-			user.addUserReward(newReward);
-			
-		}
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 		
 	}
 
@@ -130,9 +133,14 @@ public class RewardsService {
 		
 	}
 
-	public int getRewardPoints(Attraction attraction, User user) {
+	public CompletableFuture<Object> getRewardPoints(Attraction attraction, User user) {
 		
-		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
+		return CompletableFuture.supplyAsync(() -> rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId()))
+				.thenApply(rewardPoints -> {
+					
+					return rewardPoints;
+					
+				});
 		
 	}
 
