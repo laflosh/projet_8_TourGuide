@@ -37,11 +37,14 @@ public class TourGuideController {
     }
 
     @RequestMapping("/getNearbyAttractions")
-    public List<NearbyAttraction> getNearbyAttractions(@RequestParam String userName) {
+    public CompletableFuture<List<NearbyAttraction>> getNearbyAttractions(@RequestParam String userName) {
     	
-    	CompletableFuture<VisitedLocation> visitedLocation = tourGuideService.getUserLocation(getUser(userName));
-    	
-    	return tourGuideService.getNearByAttractions(visitedLocation);
+    	return tourGuideService.getUserLocation(getUser(userName)).thenApply(visitedLocation -> 
+    		
+    		tourGuideService.getNearByAttractions(visitedLocation)
+    		
+    	);
+    	 
     	
     }
 

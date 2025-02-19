@@ -143,35 +143,31 @@ public class TourGuideService {
 		
 	}
 
-	public List<NearbyAttraction> getNearByAttractions(CompletableFuture<VisitedLocation> visitedLocation) {
+	public List<NearbyAttraction> getNearByAttractions(VisitedLocation visitedLocation) {
 		
 		List<NearbyAttraction> nearbyAttractions = new ArrayList<>();
 		List<Attraction> attractions = gpsUtil.getAttractions();
-		
-		visitedLocation.thenAccept(visited -> {
 			
-			for (Attraction attraction : attractions) {
+		for (Attraction attraction : attractions) {
+			
+			double distanceAttraction = rewardsService.getDistance(attraction, visitedLocation.location);
+			
+			NearbyAttraction nearbyAttraction = new NearbyAttraction();
+			Location location = new Location(attraction.latitude, attraction.longitude);
+			
+			nearbyAttraction.setAttractionName(attraction.attractionName);
+			nearbyAttraction.setAttractionLocation(location);
+			nearbyAttraction.setUserLocation(visitedLocation.location);
+			nearbyAttraction.setDistanceBetweenUserAndAttraction(distanceAttraction);
+			nearbyAttraction.setRewardPoints(rewardCentral.getAttractionRewardPoints(attraction.attractionId, visitedLocation.userId));
+			
+			if (nearbyAttraction != null) {
 				
-				double distanceAttraction = rewardsService.getDistance(attraction, visited.location);
-				
-				NearbyAttraction nearbyAttraction = new NearbyAttraction();
-				Location location = new Location(attraction.latitude, attraction.longitude);
-				
-				nearbyAttraction.setAttractionName(attraction.attractionName);
-				nearbyAttraction.setAttractionLocation(location);
-				nearbyAttraction.setUserLocation(visited.location);
-				nearbyAttraction.setDistanceBetweenUserAndAttraction(distanceAttraction);
-				nearbyAttraction.setRewardPoints(rewardCentral.getAttractionRewardPoints(attraction.attractionId, visited.userId));
-				
-				if (nearbyAttraction != null) {
-					
-					nearbyAttractions.add(nearbyAttraction);
-					
-				}
+				nearbyAttractions.add(nearbyAttraction);
 				
 			}
 			
-		});
+		}
 		
 		List<NearbyAttraction> sortedNearbyAttraction = nearbyAttractions.stream()
 				.sorted(Comparator.comparingDouble(attraction -> attraction.getDistanceBetweenUserAndAttraction()))
