@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -23,6 +24,16 @@ import rewardCentral.RewardCentral;
 import tripPricer.Provider;
 
 public class TestTourGuideService {
+	
+	@AfterAll
+	static public void tearDown() {
+		
+		GpsUtil gpsUtil = new GpsUtil();
+		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
+		
+		rewardsService.shutDownExecutor();
+		
+	}
 
 	@Test
 	public void getUserLocation() throws InterruptedException {

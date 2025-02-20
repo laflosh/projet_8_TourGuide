@@ -49,7 +49,6 @@ public class TestPerformance {
 	 * TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	 */
 
-	@Disabled
 	@Test
 	public void highVolumeTrackLocation() throws InterruptedException {
 		GpsUtil gpsUtil = new GpsUtil();
@@ -75,6 +74,7 @@ public class TestPerformance {
 			tourGuideService.trackUserLocation(allUsers.get(i)).thenAccept(visitedLocation -> {
 				
 				visitedLocationHodler[index] = visitedLocation;
+		        System.out.println("Testing user :" + index);
 				latch.countDown();
 				
 			});
@@ -92,7 +92,6 @@ public class TestPerformance {
 		assertEquals(visitedLocationHodler.length, allUsers.size());
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
-
 
 	@Test
 	public void highVolumeGetRewards() throws InterruptedException {
@@ -113,24 +112,17 @@ public class TestPerformance {
 		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
 	    List<CompletableFuture<Void>> futures = new ArrayList<>();
-
-	    int count = 0;
 	    
 	    for (User u : allUsers) {
 	        futures.add(rewardsService.calculateRewards(u));
-	        System.out.println("Testing user :" + count);
-	        count++;
 	    }
 
 	    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-	    int i = 0;
 	    
 		for (User user : allUsers) {
 
 			assertTrue(user.getUserRewards().size() > 0);
-			System.out.println("Assert user :" + i);
-			i++;
+
 		}
 		
 		stopWatch.stop();
