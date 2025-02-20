@@ -11,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
@@ -74,7 +73,6 @@ public class TestPerformance {
 			tourGuideService.trackUserLocation(allUsers.get(i)).thenAccept(visitedLocation -> {
 				
 				visitedLocationHodler[index] = visitedLocation;
-		        System.out.println("Testing user :" + index);
 				latch.countDown();
 				
 			});
