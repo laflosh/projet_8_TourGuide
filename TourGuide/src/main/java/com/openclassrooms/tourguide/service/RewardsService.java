@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ public class RewardsService {
 	
 	private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
+	private final ExecutorService executor = Executors.newFixedThreadPool(65);
 
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
 		
@@ -74,15 +77,13 @@ public class RewardsService {
 					
 					return alreadyExist;
 					
-				}).thenCompose(alreadyExist -> {
+				}, executor).thenCompose(alreadyExist -> {
 					
 					if(alreadyExist == false) {
 						
 						if(nearAttraction(visitedLocation, attraction)) {
 							
-							 	return getRewardPoints(attraction, user).thenAccept(result -> {
-								
-								int rewardPoints = result.hashCode();
+							 	return getRewardPoints(attraction, user).thenAccept(rewardPoints -> {
 								
 								UserReward newReward = new UserReward(visitedLocation, attraction, rewardPoints);
 								
@@ -133,14 +134,16 @@ public class RewardsService {
 		
 	}
 
-	public CompletableFuture<Object> getRewardPoints(Attraction attraction, User user) {
+	public CompletableFuture<Integer> getRewardPoints(Attraction attraction, User user) {
 		
-		return CompletableFuture.supplyAsync(() -> rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId()))
-				.thenApply(rewardPoints -> {
-					
-					return rewardPoints;
-					
-				});
+		return CompletableFuture.supplyAsync(() -> rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId())
+				,executor);
+		
+	}
+	
+	public void shutDownExecutor() {
+		
+		executor.shutdown();
 		
 	}
 

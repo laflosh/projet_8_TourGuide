@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -42,6 +44,7 @@ public class TourGuideService {
 	private final RewardsService rewardsService;
 	private final RewardCentral rewardCentral = new RewardCentral();
 	private final TripPricer tripPricer = new TripPricer();
+	private final ExecutorService executor = Executors.newFixedThreadPool(65);
 	
 	public final Tracker tracker;
 	
@@ -129,7 +132,9 @@ public class TourGuideService {
 				.thenApply(visitedLocation -> {
 					
 					user.addToVisitedLocations(visitedLocation);
-					CompletableFuture.runAsync(() -> rewardsService.calculateRewards(user));
+					CompletableFuture.runAsync(() -> {
+						rewardsService.calculateRewards(user);
+					});
 					
 					return visitedLocation;
 					
@@ -190,6 +195,7 @@ public class TourGuideService {
 			public void run() {
 				
 				tracker.stopTracking();
+				rewardsService.shutDownExecutor();
 				
 			}
 			
