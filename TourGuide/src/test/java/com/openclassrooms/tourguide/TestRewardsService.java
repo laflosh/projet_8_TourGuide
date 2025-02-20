@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
@@ -22,9 +23,19 @@ import gpsUtil.location.VisitedLocation;
 import rewardCentral.RewardCentral;
 
 public class TestRewardsService {
+	
+	@AfterAll
+	static public void tearDown() {
+		
+		GpsUtil gpsUtil = new GpsUtil();
+		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
+		
+		rewardsService.shutDownExecutor();
+		
+	}
 
 	@Test
-	public void userGetRewards() throws InterruptedException {
+	public void userGetRewards(){
 		
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
