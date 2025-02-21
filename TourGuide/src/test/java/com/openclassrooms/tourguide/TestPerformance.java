@@ -73,6 +73,7 @@ public class TestPerformance {
 			tourGuideService.trackUserLocation(allUsers.get(i)).thenAccept(visitedLocation -> {
 
 				visitedLocationHodler[index] = visitedLocation;
+				System.out.println("Testing user " + index);
 				latch.countDown();
 
 			});
@@ -111,8 +112,12 @@ public class TestPerformance {
 
 	    List<CompletableFuture<Void>> futures = new ArrayList<>();
 
+	    int index = 0;
+	    
 	    for (User u : allUsers) {
 	        futures.add(rewardsService.calculateRewards(u));
+	        System.out.println("Testing user " + index);
+	        index++;
 	    }
 
 	    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
