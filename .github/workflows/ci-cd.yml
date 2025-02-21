@@ -37,7 +37,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/tourguide:${{ github.sha }} .
+       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/tourguide:${{ github.sha }} -f TourGuide/Dockerfile .
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/tourguide:${{ github.sha }}
