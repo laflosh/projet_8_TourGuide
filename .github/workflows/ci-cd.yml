@@ -53,8 +53,7 @@ jobs:
 
       - name: Pull and run Docker container on server
         run: |
-          ssh user@server "
           docker pull ${{ secrets.DOCKER_USERNAME }}/tourguide:${{ github.sha }} &&
           docker stop tourguide || true &&
           docker rm tourguide || true &&
-          docker run -d --name tourguide -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/tourguide:${{ github.sha }}"
+          docker run -d --name tourguide -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/tourguide:${{ github.sha }}
