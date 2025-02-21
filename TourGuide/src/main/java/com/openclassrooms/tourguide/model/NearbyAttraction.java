@@ -5,13 +5,13 @@ import gpsUtil.location.Location;
 public class NearbyAttraction {
 
 	String attractionName;
-	
+
 	Location attractionLocation;
-	
+
 	Location userLocation;
-	
+
 	double distanceBetweenUserAndAttraction;
-	
+
 	int rewardPoints;
 
 	public String getAttractionName() {
@@ -53,5 +53,5 @@ public class NearbyAttraction {
 	public void setRewardPoints(int rewardPoints) {
 		this.rewardPoints = rewardPoints;
 	}
-	
+
 }

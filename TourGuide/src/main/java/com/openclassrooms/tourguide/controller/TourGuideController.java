@@ -1,7 +1,6 @@
 package com.openclassrooms.tourguide.controller;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,48 +23,48 @@ public class TourGuideController {
 
     @RequestMapping("/")
     public String index() {
-    	
+
         return "Greetings from TourGuide!";
-        
+
     }
 
     @RequestMapping("/getLocation")
-    public CompletableFuture<VisitedLocation> getLocation(@RequestParam String userName) {
-    	
-    	return tourGuideService.getUserLocation(getUser(userName));
-    	
+    public VisitedLocation getLocation(@RequestParam String userName) {
+
+    	return tourGuideService.getUserLocation(getUser(userName)).join();
+
     }
 
     @RequestMapping("/getNearbyAttractions")
-    public CompletableFuture<List<NearbyAttraction>> getNearbyAttractions(@RequestParam String userName) {
-    	
-    	return tourGuideService.getUserLocation(getUser(userName)).thenApply(visitedLocation -> 
-    		
+    public List<NearbyAttraction> getNearbyAttractions(@RequestParam String userName) {
+
+    	return tourGuideService.getUserLocation(getUser(userName)).thenApply(visitedLocation ->
+
     		tourGuideService.getNearByAttractions(visitedLocation)
-    		
-    	);
-    	 
-    	
+
+    	).join();
+
+
     }
 
     @RequestMapping("/getRewards")
     public List<UserReward> getRewards(@RequestParam String userName) {
-    	
+
     	return tourGuideService.getUserRewards(getUser(userName));
-    	
+
     }
 
     @RequestMapping("/getTripDeals")
     public List<Provider> getTripDeals(@RequestParam String userName) {
-    	
+
     	return tourGuideService.getTripDeals(getUser(userName));
-    	
+
     }
 
     private User getUser(String userName) {
-    	
+
     	return tourGuideService.getUser(userName);
-    	
+
     }
 
 

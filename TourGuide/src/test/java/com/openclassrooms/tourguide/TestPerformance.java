@@ -59,34 +59,34 @@ public class TestPerformance {
 
 		List<User> allUsers = new ArrayList<>();
 		allUsers = tourGuideService.getAllUsers();
-		
+
 		CountDownLatch latch = new CountDownLatch(allUsers.size());
 		VisitedLocation[] visitedLocationHodler = new VisitedLocation[allUsers.size()];
 
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
-		
+
 		for (int i = 0; i < allUsers.size(); i++) {
-			
+
 			final int index = i;
-			
+
 			tourGuideService.trackUserLocation(allUsers.get(i)).thenAccept(visitedLocation -> {
-				
+
 				visitedLocationHodler[index] = visitedLocation;
 				latch.countDown();
-				
+
 			});
-			
+
 		}
-		
+
 		latch.await();
-		
+
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
 
 		System.out.println("highVolumeTrackLocation: Time Elapsed: "
 				+ TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
-		
+
 		assertEquals(visitedLocationHodler.length, allUsers.size());
 		assertTrue(TimeUnit.MINUTES.toSeconds(15) >= TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()));
 	}
@@ -105,24 +105,24 @@ public class TestPerformance {
 
 		Attraction attraction = gpsUtil.getAttractions().get(0);
 		List<User> allUsers = new ArrayList<>();
-		
+
 		allUsers = tourGuideService.getAllUsers();
 		allUsers.forEach(u -> u.addToVisitedLocations(new VisitedLocation(u.getUserId(), attraction, new Date())));
 
 	    List<CompletableFuture<Void>> futures = new ArrayList<>();
-	    
+
 	    for (User u : allUsers) {
 	        futures.add(rewardsService.calculateRewards(u));
 	    }
 
 	    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-	    
+
 		for (User user : allUsers) {
 
 			assertTrue(user.getUserRewards().size() > 0);
 
 		}
-		
+
 		stopWatch.stop();
 		tourGuideService.tracker.stopTracking();
 	    rewardsService.shutDownExecutor();
