@@ -3,7 +3,7 @@ FROM openjdk:17-jdk-slim
 
 WORKDIR /tourguide
 
-COPY target /tourguide.jar tourguide.jar
+COPY target /*.jar tourguide.jar
 
 #Port for running the app
 Expose 8080
