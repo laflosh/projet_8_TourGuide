@@ -22,7 +22,7 @@ jobs:
           java-version: '17'
 
       - name: Build and test with Maven
-        run: vn -f TourGuide/pom.xml clean install -DskipTests=false
+        run: mvn -f TourGuide/pom.xml clean install -DskipTests=false
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
