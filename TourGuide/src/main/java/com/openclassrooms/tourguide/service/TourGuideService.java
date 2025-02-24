@@ -78,11 +78,11 @@ public class TourGuideService {
 
 	}
 
-	public CompletableFuture<VisitedLocation> getUserLocation(User user) {
+	public VisitedLocation getUserLocation(User user) {
 
 		if(user.getVisitedLocations().size() > 0){
 
-			return CompletableFuture.completedFuture(user.getLastVisitedLocation());
+			return user.getLastVisitedLocation();
 
 		} else {
 
@@ -127,25 +127,37 @@ public class TourGuideService {
 
 	}
 
-	public CompletableFuture<VisitedLocation> trackUserLocation(User user) {
+	public VisitedLocation trackUserLocation(User user) {
 
-		return CompletableFuture.supplyAsync(() -> gpsUtil.getUserLocation(user.getUserId()), executor)
-				.thenApply(visitedLocation -> {
+		VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
 
-					user.addToVisitedLocations(visitedLocation);
-					CompletableFuture.runAsync(() -> {
-						rewardsService.calculateRewards(user);
-					});
+		user.addToVisitedLocations(visitedLocation);
 
-					return visitedLocation;
+		CompletableFuture.runAsync(() -> {
+			rewardsService.calculateRewards(user);
+		});
 
-				})
-	            .exceptionally(ex -> {
+		return visitedLocation;
 
-	                System.err.println("Erreur lors de la récupération de la position GPS : " + ex.getMessage());
-	                return null;
+	}
 
-	            });
+	public Void asyncTrackUserLocation(List<User> users) {
+
+		List<CompletableFuture<VisitedLocation>> futures = new ArrayList<>();
+
+		for(User user : users) {
+
+			CompletableFuture<VisitedLocation> future = CompletableFuture.supplyAsync(() -> {
+
+				return trackUserLocation(user);
+
+			}, executor);
+
+			futures.add(future);
+
+		}
+
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
 	}
 

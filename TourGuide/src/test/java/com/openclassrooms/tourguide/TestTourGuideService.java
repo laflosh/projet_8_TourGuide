@@ -1,12 +1,10 @@
 package com.openclassrooms.tourguide;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
@@ -44,22 +42,11 @@ public class TestTourGuideService {
 
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
-		CountDownLatch latch = new CountDownLatch(1);
-		VisitedLocation[] visitedLocationHolder = new VisitedLocation[1];
-
-		tourGuideService.trackUserLocation(user).thenAccept(visitedLocation -> {
-
-			visitedLocationHolder[0] = visitedLocation;
-			latch.countDown();
-
-		});
-
-		latch.await();
+		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
 		tourGuideService.tracker.stopTracking();
 
-		assertNotNull(visitedLocationHolder[0]);
-		assertTrue(visitedLocationHolder[0].userId.equals(user.getUserId()));
+		assertTrue(visitedLocation.userId.equals(user.getUserId()));
 
 	}
 
@@ -120,21 +107,11 @@ public class TestTourGuideService {
 
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
-		CountDownLatch latch = new CountDownLatch(1);
-		VisitedLocation[] visitedLocationHolder = new VisitedLocation[1];
-
-		tourGuideService.trackUserLocation(user).thenAccept(visitedLocation -> {
-
-			visitedLocationHolder[0] = visitedLocation;
-			latch.countDown();
-
-		});
-
-		latch.await();
+		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(user.getUserId(), visitedLocationHolder[0].userId);
+		assertEquals(user.getUserId(),visitedLocation.userId);
 
 	}
 
@@ -149,22 +126,13 @@ public class TestTourGuideService {
 
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
 
-		CountDownLatch latch = new CountDownLatch(1);
-		List<NearbyAttraction>[] attractionsHolder = new List[1];
+		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
-		tourGuideService.trackUserLocation(user)
-				.thenAccept(visitedLocation -> {
-
-					attractionsHolder[0] = tourGuideService.getNearByAttractions(visitedLocation);
-					latch.countDown();
-
-				});
-
-		latch.await();
+		List<NearbyAttraction> attractions = tourGuideService.getNearByAttractions(visitedLocation);
 
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(5, attractionsHolder[0].size());
+		assertEquals(5, attractions.size());
 
 	}
 

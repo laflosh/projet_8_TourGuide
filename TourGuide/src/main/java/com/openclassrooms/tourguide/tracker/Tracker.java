@@ -60,7 +60,7 @@ public class Tracker extends Thread {
 
 			stopWatch.start();
 
-			users.forEach(u -> tourGuideService.trackUserLocation(u));
+			tourGuideService.asyncTrackUserLocation(users);
 
 			stopWatch.stop();
 

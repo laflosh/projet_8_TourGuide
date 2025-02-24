@@ -50,63 +50,63 @@ public class RewardsService {
 
 	}
 
-	public CompletableFuture<Void> calculateRewards(User user) {
+	public void calculateRewards(User user) {
 
 		List<VisitedLocation> userLocations = new CopyOnWriteArrayList<>(user.getVisitedLocations());
 		List<Attraction> attractions = gpsUtil.getAttractions();
-		List<CompletableFuture<Void>> futures = new ArrayList<>();
 
 		for(VisitedLocation visitedLocation : userLocations) {
 
 			for(Attraction attraction : attractions) {
 
-				CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+				boolean alreadyExist = false;
 
-					boolean alreadyExist = false;
+				for(UserReward existingReward : user.getUserRewards()) {
 
-					for(UserReward existingReward : user.getUserRewards()) {
+            		if(existingReward.attraction.attractionName.equals(attraction.attractionName)) {
 
-	            		if(existingReward.attraction.attractionName.equals(attraction.attractionName)) {
+            			alreadyExist = true;
+            			break;
 
-	            			alreadyExist = true;
-	            			break;
+            		}
 
-	            		}
+            	}
 
-	            	}
+				if(!alreadyExist) {
 
-					return alreadyExist;
+					if(nearAttraction(visitedLocation, attraction)) {
 
-				}, executor).thenCompose(alreadyExist -> {
+						UserReward newReward = new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user));
 
-					if(!alreadyExist) {
-
-						if(nearAttraction(visitedLocation, attraction)) {
-
-							 	return getRewardPoints(attraction, user).thenAccept(rewardPoints -> {
-
-								UserReward newReward = new UserReward(visitedLocation, attraction, rewardPoints);
-
-								user.addUserReward(newReward);
-
-							});
-
-						}
+						user.addUserReward(newReward);
 
 					}
 
-					return CompletableFuture.completedFuture(null);
-
-				});
-
-
-				futures.add(future);
+				}
 
 			}
 
 		}
 
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+	}
+
+	public Void asyncCalculateRewards(List<User> users) {
+
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+		for(User user : users) {
+
+			CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+
+				calculateRewards(user);
+
+			}, executor);
+
+			futures.add(future);
+
+		}
+
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
 	}
 
@@ -134,10 +134,9 @@ public class RewardsService {
 
 	}
 
-	public CompletableFuture<Integer> getRewardPoints(Attraction attraction, User user) {
+	public Integer getRewardPoints(Attraction attraction, User user) {
 
-		return CompletableFuture.supplyAsync(() -> rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId())
-				,executor);
+		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 
 	}
 

@@ -31,19 +31,16 @@ public class TourGuideController {
     @RequestMapping("/getLocation")
     public VisitedLocation getLocation(@RequestParam String userName) {
 
-    	return tourGuideService.getUserLocation(getUser(userName)).join();
+    	return tourGuideService.getUserLocation(getUser(userName));
 
     }
 
     @RequestMapping("/getNearbyAttractions")
     public List<NearbyAttraction> getNearbyAttractions(@RequestParam String userName) {
 
-    	return tourGuideService.getUserLocation(getUser(userName)).thenApply(visitedLocation ->
+    	VisitedLocation visitedLocation = tourGuideService.getUserLocation(getUser(userName));
 
-    		tourGuideService.getNearByAttractions(visitedLocation)
-
-    	).join();
-
+    	return tourGuideService.getNearByAttractions(visitedLocation);
 
     }
 
