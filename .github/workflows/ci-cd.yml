@@ -35,7 +35,7 @@ jobs:
         run: mv TourGuide/target/*.jar ./TourGuide.jar
 
       - name: Upload artifact (JAR file)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: TourGuide-jar
           path: TourGuide.jar
