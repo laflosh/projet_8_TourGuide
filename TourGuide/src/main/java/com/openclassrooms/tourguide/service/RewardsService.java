@@ -90,7 +90,7 @@ public class RewardsService {
 
 	}
 
-	public Void asyncCalculateRewards(List<User> users) {
+	public Void calculateRewards(List<User> users) {
 
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 

@@ -133,15 +133,13 @@ public class TourGuideService {
 
 		user.addToVisitedLocations(visitedLocation);
 
-		CompletableFuture.runAsync(() -> {
-			rewardsService.calculateRewards(user);
-		});
+		rewardsService.calculateRewards(user);
 
 		return visitedLocation;
 
 	}
 
-	public Void asyncTrackUserLocation(List<User> users) {
+	public Void trackUserLocation(List<User> users) {
 
 		List<CompletableFuture<VisitedLocation>> futures = new ArrayList<>();
 

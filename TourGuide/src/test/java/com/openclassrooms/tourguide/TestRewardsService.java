@@ -48,7 +48,7 @@ public class TestRewardsService {
 		user.addToVisitedLocations(new VisitedLocation(user.getUserId(), attraction, new Date()));
 
 		tourGuideService.trackUserLocation(user);
-		
+
 		Thread.sleep(1000);
 
 		List<UserReward> userRewards = user.getUserRewards();
